@@ -8,7 +8,7 @@
     var active = false, paused = false, keys = new Set(), pointers = new Map();
     var stick = document.getElementById('joystick'), knob = stick.firstElementChild;
     var fire = document.getElementById('touch-fire');
-    var moveId = null, lookId = null, fireId = null, turn = 0, mouseX = 0, frame = 0;
+    var moveId = null, lookId = null, fireId = null, turn = 0, frame = 0, lastFrame = 0;
     var nextUse = 0, releaseUse = 0;
     var ui = document.getElementById('touch-ui');
     // Pointer Events drive gameplay. Suppress native touch gestures and compatibility
@@ -16,22 +16,26 @@
     ['touchstart', 'touchmove', 'touchend', 'gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
       ui.addEventListener(type, function (e) { e.preventDefault(); }, {passive: false});
     });
-    var codes = {w: 87, s: 83, a: 65, d: 68, e: 69};
+    var codes = {w: 87, s: 83, a: 65, d: 68, e: 69, ArrowLeft: 37, ArrowRight: 39};
     function key(name, down) {
       if (keys.has(name) === down) return;
       if (down) keys.add(name); else keys.delete(name);
       canvas.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', {
-        key: name, code: 'Key' + name.toUpperCase(),
+        key: name, code: name.indexOf('Arrow') === 0 ? name : 'Key' + name.toUpperCase(),
         keyCode: codes[name], which: codes[name], bubbles: true, cancelable: true
       }));
     }
-    function mouse(type, dx) {
+    function mouse(type) {
       var rect = canvas.getBoundingClientRect();
-      if (type === 'mousemove') mouseX += dx || 0;
       canvas.dispatchEvent(new MouseEvent(type, {bubbles: true, cancelable: true,
-        button: 0, buttons: type === 'mouseup' ? 0 : (fire.classList.contains('held') ? 1 : 0),
-        clientX: rect.left + mouseX, clientY: rect.top + rect.height / 2,
-        movementX: dx || 0, movementY: 0}));
+        button: 0, buttons: type === 'mouseup' ? 0 : 1,
+        clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2}));
+    }
+    function addTurn(dx) {
+      // A short time budget feeds Doom's turn commands. No absolute mouse position:
+      // SDL/browser cursor clamping must not limit how far the player can rotate.
+      if (Math.sign(dx) !== Math.sign(turn)) turn = 0;
+      turn = Math.max(-300, Math.min(300, turn + dx * 3));
     }
     function reset() {
       Array.from(keys).forEach(function (k) { key(k, false); });
@@ -49,11 +53,11 @@
     }
     function animate(now) {
       if (!active) return;
-      if (!paused && turn) {
-        // Without pointer lock SDL derives relative movement from absolute coordinates.
-        // Keep an unbounded virtual cursor so repeated swipes never hit a screen edge.
-        mouse('mousemove', turn * 1.5); turn = 0;
-      }
+      var dt = Math.min(50, Math.max(0, now - (lastFrame || now)));
+      lastFrame = now;
+      var direction = !paused ? Math.sign(turn) : 0;
+      key('ArrowLeft', direction < 0); key('ArrowRight', direction > 0);
+      if (direction) turn -= direction * Math.min(Math.abs(turn), dt);
       // Doom requires a fresh use press for gates, switches and respawning.
       // Approach while moving, or press fire after dying; no extra touch button.
       if (!paused) {
@@ -97,7 +101,7 @@
           knob.style.transform = 'translate(' + x + 'px,' + y + 'px)';
           key('w', y < -12); key('s', y > 12); key('a', x < -12); key('d', x > 12);
         } else if (p.role === 'look' || p.role === 'fire') {
-          turn += e.clientX - p.lastX; p.lastX = e.clientX;
+          addTurn(e.clientX - p.lastX); p.lastX = e.clientX;
         }
       });
       function release(e) {
@@ -122,7 +126,7 @@
     window.addEventListener('blur', function () { setPaused(true); });
     window.addEventListener('resize', reset);
     this.start = function () {
-      active = true; document.body.classList.add('playing'); screen.scrollTop = 0; window.scrollTo(0, 0); mouse('mousemove', 0); frame = requestAnimationFrame(animate);
+      active = true; document.body.classList.add('playing'); screen.scrollTop = 0; window.scrollTo(0, 0); lastFrame = 0; frame = requestAnimationFrame(animate);
     };
     this.stop = function () {
       reset(); active = false; paused = false; cancelAnimationFrame(frame);

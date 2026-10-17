@@ -87,8 +87,9 @@ the game controls so repeated taps do not zoom. Loss of focus and interrupted to
 the engine; tap Resume to continue. Rotation resets held input without forcing a pause.
 
 `web/touch-controls.js` adapts Pointer Events to the existing SDL keyboard and mouse input.
-It disables pointer lock on touch devices and uses an unbounded virtual mouse coordinate
-for repeated swipes. The page and controls share the fullscreen container. No engine rebuild
+It disables pointer lock on touch devices. Swipes feed the engine's left/right turn commands
+through a short time budget, independent of mouse coordinate limits; reversal drops the old
+budget immediately. The page and controls share the fullscreen container. No engine rebuild
 is needed. Changes to the page belong in `web/page.template.html` and `tools/page.py`.
 
 Checked locally in headless Chrome with touch emulation: simultaneous movement/turn/fire,

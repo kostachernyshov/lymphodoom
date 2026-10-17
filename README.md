@@ -76,6 +76,25 @@ the handoff, and the narrow layout has no horizontal overflow. The WebAssembly e
 are reused from the existing build; no engine or game-data changes are needed for this release.
 GPU performance, listening by ear and hosting configuration still need the owner's check.
 
+## Touch controls (local preview)
+
+Phones use the same engine and WAD. In landscape, the game fills the browser viewport with
+translucent controls: floating movement stick on the left, drag to turn on the right, hold
+and drag the crosshair button to fire and turn, door icon to use, arrows to cycle weapons.
+The HUD stays clear below the controls. Portrait orientation, interrupted touches and loss
+of focus pause the engine; resume explicitly after returning to landscape.
+
+`web/touch-controls.js` adapts Pointer Events to the existing SDL keyboard and mouse input.
+It disables pointer lock on touch devices and uses an unbounded virtual mouse coordinate
+for repeated swipes. The page and controls share the fullscreen container. No engine rebuild
+is needed. Changes to the page belong in `web/page.template.html` and `tools/page.py`.
+
+Checked locally in headless Chrome with touch emulation: simultaneous movement/turn/fire,
+action, weapon cycling, release of held inputs, pause/resume and portrait pause; EN desktop
+launch also passed. Real iPhone/Android performance, audio and thumb comfort still need a
+physical-device check. To preview on a phone, serve `web/` on the Mac and open its LAN address
+on the same Wi-Fi; do not use `localhost` on the phone.
+
 ## Layout
 
 | Path | What |

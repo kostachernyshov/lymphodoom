@@ -2,7 +2,7 @@
 <html lang="{{lang}}">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{title}}</title>
 <meta name="description" content="{{description}}">
 <link rel="canonical" href="{{canonical}}">
@@ -66,7 +66,7 @@ a:hover { color: var(--white); }
   image-rendering: pixelated; image-rendering: crisp-edges;
 }
 .screen .selection { display: none; }
-.screen.choosing .selection { display: block; }
+.screen.choosing:not(.running) .selection { display: block; }
 .screen canvas { display: none; object-fit: contain; background: #000; outline: none; }
 .screen.running img, .screen.running .start, .screen.running .splash { display: none; }
 .screen.running canvas { display: block; }
@@ -75,7 +75,7 @@ a:hover { color: var(--white); }
   width: 47%;
   display: none; flex-direction: column; align-items: center; gap: 12px;
 }
-.screen.choosing .start { display: flex; }
+.screen.choosing:not(.running) .start { display: flex; }
 button.skill {
   display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer;
   box-shadow: 6px 6px 0 0 #000;
@@ -89,10 +89,38 @@ button.skill[disabled] { opacity: .5; cursor: progress; }
 .bar i { display: block; height: 100%; width: 0; background: var(--logo); }
 .loading .bar { display: block; }
 .loading button.skill { display: none; }
-.mobile { display: none; margin-top: 18px; padding: 12px 16px; background: #000; box-shadow: 0 0 0 3px var(--plum); }
-.mobile p { margin: 0 0 6px; }
-.touch .mobile { display: block; }
-.touch button.skill, .touch .tools { display: none; }
+/* Touch controls live in the same frame as the game, including fullscreen. */
+.mobile { display: none; }
+.touch .mobile { display: block; margin-top: 20px; }
+.touch-ui, .rotate-note, .pause-panel { display: none; }
+.touch.playing { overflow: hidden; }
+.touch.playing .screen { position: fixed; inset: 0; width: 100%; height: 100dvh; aspect-ratio: auto;
+  border: 0; border-radius: 0; box-shadow: none; z-index: 100; }
+.touch.playing .touch-ui { display: block; position: absolute; inset: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.move-zone { position: absolute; left: 0; top: 15%; bottom: 19%; width: 45%; }
+.look-zone { position: absolute; right: 0; top: 12%; bottom: 19%; width: 55%; }
+.touch-button { position: absolute; min-width: 52px; min-height: 52px; border: 2px solid #c6c6c659;
+  color: #ddd9; background: #8883; font: bold 12px monospace; touch-action: none;
+  box-shadow: 3px 3px #0006; border-radius: 8px; padding: 8px; }
+.touch-button svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: square; stroke-linejoin: miter; }
+.touch-button:active, .touch-button.held { background: #aaa6; border-color: #ddd9; }
+.fire { right: max(26px, env(safe-area-inset-right)); bottom: 25%; width: 80px; height: 80px;
+  border-color: #c6c6c659; border-radius: 50%; font-size: 16px; }
+.use { right: max(122px, calc(env(safe-area-inset-right) + 110px)); bottom: 23%; }
+.weapon { right: max(30px, env(safe-area-inset-right)); top: 18%; }
+.pause { right: max(12px, env(safe-area-inset-right)); top: max(8px, env(safe-area-inset-top)); min-height: 44px; }
+.joystick { position: absolute; left: 22%; top: 64%; width: 104px; height: 104px; transform: translate(-50%, -50%);
+  border: 2px solid #c6c6c659; border-radius: 50%; background: #8882; pointer-events: none; }
+.joystick i { display: block; position: absolute; left: 28px; top: 28px; width: 44px; height: 44px;
+  border: 2px solid #ddd7; background: #9994; border-radius: 50%; }
+.touch.playing.paused .pause-panel { display: flex; position: absolute; inset: 0; align-items: center;
+  justify-content: center; background: #100d14bb; z-index: 3; }
+.pause-panel button { font: bold 18px monospace; padding: 20px 28px; background: #7e2553; color: #fff1e8; border: 2px solid #ffccaa; }
+@media (orientation: portrait) {
+  .touch .rotate-note { display: block; text-align: center; padding: 12px; background: #200a14; }
+  .touch.playing .rotate-note { display: flex; position: absolute; inset: 0; align-items: center; justify-content: center; z-index: 4; }
+  .touch.playing .touch-ui { visibility: hidden; }
+}
 
 .tools { display: flex; justify-content: flex-end; gap: 18px; margin-top: 14px; font-size: 15px; }
 .tools button { font: inherit; color: var(--peach); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
@@ -164,6 +192,16 @@ p { margin: 0 0 14px; max-width: 34em; }
       <span>{{enter}}</span>
     </button>
     <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+    <div class="touch-ui" id="touch-ui">
+      <div class="move-zone" id="move-zone"></div><div class="look-zone" id="look-zone"></div>
+      <div class="joystick" id="joystick"><i></i></div>
+      <button type="button" class="touch-button fire" id="touch-fire" aria-label="{{fire}}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/></svg></button>
+      <button type="button" class="touch-button use" id="touch-use" aria-label="{{use}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V3h12v18M3 21h18M13 12h1M8 8l-3 4 3 4m-3-4h7"/></svg></button>
+      <button type="button" class="touch-button weapon" id="touch-weapon" aria-label="{{weapon}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16l-4-4m4 4-4 4M20 17H4l4 4m-4-4 4-4"/></svg></button>
+      <button type="button" class="touch-button pause" id="touch-pause" aria-label="{{pause}}">Ⅱ</button>
+    </div>
+    <div class="pause-panel"><button type="button" id="touch-resume">{{resume}}</button></div>
+    <div class="rotate-note">{{rotate}}</div>
     <div class="start" id="start">
       <button class="skill" type="button" data-skill="2"><img src="btn_easy.png" width="150" height="26" alt="{{easy}}"></button>
       <button class="skill" type="button" data-skill="4"><img src="btn_hard.png" width="150" height="26" alt="{{hard}}"></button>
@@ -173,7 +211,7 @@ p { margin: 0 0 14px; max-width: 34em; }
   </div>
   <div class="deck" aria-hidden="true"><i class="stick"></i><div class="arcade-buttons"><i></i><i></i><i></i></div></div>
   </main>
-  <div class="mobile" id="mobile"><p>{{mobile}}</p><a href="#" id="anyway">{{anyway}}</a></div>
+  <div class="mobile"><p>{{mobile}}</p></div>
   <div class="tools">
     <button type="button" id="music" data-on="{{sound_on}}" data-off="{{sound_off}}" aria-pressed="false">{{sound_on}}</button>
     <button type="button" id="fullscreen">{{fullscreen}}</button>
@@ -185,6 +223,7 @@ p { margin: 0 0 14px; max-width: 34em; }
 </div>
 
 <script src="title-music.js"></script>
+<script src="touch-controls.js"></script>
 <script>
 (function () {
   var screen = document.getElementById('screen');
@@ -206,9 +245,7 @@ p { margin: 0 0 14px; max-width: 34em; }
 
   var coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
   if (coarse) document.body.classList.add('touch');
-  document.getElementById('anyway').addEventListener('click', function (e) {
-    e.preventDefault(); document.body.classList.remove('touch');
-  });
+  var touch = coarse ? new LymphoTouch(screen, canvas) : null;
 
   function setStatus(text) {
     var m = text && text.match(/\(([\d.]+)\/(\d+)\)/);
@@ -221,6 +258,7 @@ p { margin: 0 0 14px; max-width: 34em; }
   }
 
   function lockPointer() {
+    if (touch) return;
     if (document.pointerLockElement !== canvas && canvas.requestPointerLock) {
       try { canvas.requestPointerLock(); } catch (e) {}
     }
@@ -244,9 +282,11 @@ p { margin: 0 0 14px; max-width: 34em; }
       hideConsole: function () {
         if (window.titleMusic) window.titleMusic.stop();
         screen.classList.add('running');
-        canvas.focus();
+        canvas.focus({preventScroll: true});
+        if (touch) touch.start();
       },
       showConsole: function () {
+        if (touch) touch.stop();
         screen.classList.remove('running');
         statusEl.textContent = T.crashed;
       },

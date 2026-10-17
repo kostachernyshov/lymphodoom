@@ -16,7 +16,7 @@ EN = {
     "poster_alt": "LYMPHODOOM. Controls: W A S D move, mouse aims and fires, E or right click opens, 1 to 7 weapons, Tab map.",
     "easy": "Play: Common cold (easy)", "hard": "Play: Metastasis (hard)",
     "fullscreen": "Full screen",
-    "mobile": "Turn your phone sideways. Left thumb moves; drag on the right to turn. Hold FIRE to shoot and drag to turn at the same time.",
+    "mobile": "Move with the left stick. Swipe anywhere else to turn. Hold the crosshair to fire; drag it to turn while firing. Doors open as you approach.",
     "fire": "FIRE", "use": "USE", "weapon": "WEAPON", "pause": "Pause",
     "resume": "Resume", "rotate": "Turn your phone sideways",
     "howto_alt": "You are a killer T cell. Shoot viruses, bacteria, tumor cells, parasites, phages, spores and the boss. "
@@ -40,7 +40,7 @@ RU = {
     "poster_alt": "LYMPHODOOM. Управление: W A S D — движение, мышь — прицел и огонь, E или правая кнопка — открыть, 1–7 — оружие, Tab — карта.",
     "easy": "Играть: Common cold (легко)", "hard": "Играть: Metastasis (сложно)",
     "fullscreen": "На весь экран",
-    "mobile": "Поверните телефон горизонтально. Слева — движение, справа — поворот. Удерживайте ОГОНЬ и ведите пальцем, чтобы стрелять и поворачиваться одновременно.",
+    "mobile": "Двигайтесь левым стиком. Водите пальцем по остальному экрану, чтобы поворачиваться. Удерживайте прицел для огня; его тоже можно двигать для поворота. Двери открываются при подходе.",
     "fire": "ОГОНЬ", "use": "ДЕЙСТВИЕ", "weapon": "ОРУЖИЕ", "pause": "Пауза",
     "resume": "Продолжить", "rotate": "Поверните телефон горизонтально",
     "howto_alt": "Вы — Т-киллер. Стреляйте в вирусы, бактерии, опухолевые клетки, паразитов, фагов, споры и босса. "

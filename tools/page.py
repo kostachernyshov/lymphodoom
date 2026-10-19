@@ -4,7 +4,7 @@ import os
 from music import web_score
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REPO = "https://github.com/kosta-blackshow/lymphodoom"
+REPO = "https://github.com/kostachernyshov/lymphodoom"
 
 EN = {
     "lang": "en", "title": "LYMPHODOOM",

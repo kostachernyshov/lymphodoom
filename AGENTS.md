@@ -39,6 +39,8 @@ Doom 1 in the browser, inside the human body: the player is a killer T cell, thr
 
 ## Changelog
 
+- **2026-10-19** — GitHub account renamed to `kostachernyshov`; repository: `kostachernyshov/lymphodoom`.
+
 - **2026-10-16** — Public repository `kosta-blackshow/lymphodoom`. README and these notes
   rewritten in English; Doom-box-style poster (`art/poster.py`) used in the README and as the
   page's `og.png`; engine patch notes moved to `docs/engine-patch.md`.

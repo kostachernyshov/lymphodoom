@@ -41,7 +41,7 @@ Debian / Ubuntu:
     curl -LO https://github.com/freedoom/freedoom/releases/download/v0.13.0/freedoom-0.13.0.zip
     unzip freedoom-0.13.0.zip
 
-    git clone https://github.com/kosta-blackshow/lymphodoom.git && cd lymphodoom
+    git clone https://github.com/kostachernyshov/lymphodoom.git && cd lymphodoom
     sh engine/build.sh ../freedoom-0.13.0/freedoom1.wad
 
 macOS (Homebrew; not tested on macOS):
